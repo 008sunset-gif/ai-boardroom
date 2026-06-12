@@ -68,6 +68,7 @@ function detectStance(text: string): Stance | undefined {
 export interface CeoSummary {
   points: string // 主要な論点（対立点）
   direction: string // 結論の方向性（決定ではない）
+  conditions: string // 判断の分かれ目（どんな条件なら進め、どんな条件なら見送るか）
   risk: string // 最大のリスク
   missingInfo: string[] // 判断に足りない情報（最大3点）
 }
@@ -211,9 +212,10 @@ function summaryPrompt(issue: string, transcript: string): string {
     transcript,
     '',
     'あなたは議長です。最終決定は人間が行うため、あなたは決定を下しません。',
-    '議論を踏まえ、次の4項目を「要点のみ」簡潔にまとめてください。冗長な説明は避けること。',
+    '議論を踏まえ、次の5項目を「要点のみ」簡潔にまとめてください。冗長な説明は避けること。',
     '・points: 主要な論点（役員間の対立点はどこか）。2〜3文程度。',
     '・direction: 結論の方向性（決定ではなく検討の方向性として）。2〜3文程度。',
+    '・conditions: 判断の分かれ目。どういう条件が満たされるなら進めるべきで、どういう条件なら見送る・慎重になるべきか、判断の境目を簡潔に示す。1〜2文程度。',
     '・risk: 最大のリスク。1〜2文程度。',
     '・missingInfo: 判断に足りない情報。最大3点まで、各項目は短く。',
   ].join('\n')
@@ -224,6 +226,10 @@ const SUMMARY_SCHEMA: ResponseSchema = {
   properties: {
     points: { type: SchemaType.STRING, description: '主要な論点・対立点' },
     direction: { type: SchemaType.STRING, description: '結論の方向性（決定ではない）' },
+    conditions: {
+      type: SchemaType.STRING,
+      description: '判断の分かれ目（どんな条件なら進め、どんな条件なら見送るか）',
+    },
     risk: { type: SchemaType.STRING, description: '最大のリスク' },
     missingInfo: {
       type: SchemaType.ARRAY,
@@ -231,7 +237,7 @@ const SUMMARY_SCHEMA: ResponseSchema = {
       items: { type: SchemaType.STRING },
     },
   },
-  required: ['points', 'direction', 'risk', 'missingInfo'],
+  required: ['points', 'direction', 'conditions', 'risk', 'missingInfo'],
 }
 
 function formatTranscript(statements: Statement[]): string {

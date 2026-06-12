@@ -556,6 +556,9 @@ function StatementCard({ statement }: { statement: Statement }) {
             <div className="summary">
               <SummaryItem label="主要な論点" text={statement.summary.points} />
               <SummaryItem label="結論の方向性" text={statement.summary.direction} />
+              {statement.summary.conditions && (
+                <SummaryItem label="判断の分かれ目" text={statement.summary.conditions} />
+              )}
               <SummaryItem label="最大のリスク" text={statement.summary.risk} />
               <div className="summary-item">
                 <span className="summary-label">判断に足りない情報</span>
