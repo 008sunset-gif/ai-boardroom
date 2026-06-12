@@ -19,13 +19,28 @@ const EXAMPLE_ISSUES = [
 ]
 
 // 表示するフェーズの順序（＝会議のアジェンダ進行順）。
-const PHASE_ORDER: Phase[] = ['opening', 'rebuttal', 'summary']
+const PHASE_ORDER: Phase[] = ['opening', 'rebuttal', 'counter', 'summary']
 
 // 議論画面の議事タイトル。
 const AGENDA_TITLES: Record<Phase, string> = {
   opening: '各役員の初期意見',
   rebuttal: '反論',
+  counter: '再反論',
   summary: '議長総括',
+}
+
+// 履歴の日時表示（例: 6/12 14:30）。
+function formatHistoryDate(ts: number): string {
+  try {
+    return new Date(ts).toLocaleString('ja-JP', {
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return ''
+  }
 }
 
 // ---- 小さなインラインアイコン ----

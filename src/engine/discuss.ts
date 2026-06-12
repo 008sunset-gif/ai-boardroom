@@ -36,11 +36,12 @@ async function mapInBatches<T, R>(
   return results
 }
 
-export type Phase = 'opening' | 'rebuttal' | 'summary'
+export type Phase = 'opening' | 'rebuttal' | 'counter' | 'summary'
 
 export const PHASE_LABELS: Record<Phase, string> = {
   opening: '初期意見',
   rebuttal: '反論',
+  counter: '再反論',
   summary: '総括',
 }
 
@@ -132,7 +133,9 @@ function formatContext(context?: ClarifyAnswer[]): string {
 function openingPrompt(issue: string): string {
   return [
     '次の経営課題について、あなたの立場（賛成 / 反対 / 条件付き賛成 のいずれか）を最初に明示し、',
-    'その理由を、あなたの専門観点から2〜3点述べてください。300字程度で簡潔に。',
+    'その理由を、あなたの専門観点から2〜3点述べてください。',
+    '200字程度で、要点を絞って簡潔に。冗長な前置きや一般論の繰り返しは避けること。',
+    '立場とその核心的な理由が端的に伝わることを最優先にしてください。',
     '',
     '【経営課題】',
     issue,
@@ -163,7 +166,37 @@ function rebuttalPrompt(
     '・全員に総花的に触れる必要はない。最も意見が食い違う相手の主張に、具体的に切り込む。',
     '・誰のどの主張に反論しているのかが分かるように、相手の役職名に触れながら述べる。',
     '・安易に同意せず、少なくとも1つは具体的な反論点（前提の甘さ・見落とし・リスクや機会損失）を挙げる。',
-    '300字程度で。',
+    '200字程度で、要点を絞って簡潔に。冗長な前置きや一般論の繰り返しは避けること。',
+  ].join('\n')
+}
+
+// フェーズ3（再反論）。各役員が、自分への反論や他者の反論を読んだうえで、
+// 立場を維持するか修正するかを明示して、もう一度述べる。議論を噛み合わせるための一巡。
+function counterPrompt(
+  self: Role,
+  selfOpening: string,
+  othersRebuttals: { role: Role; rebuttal: string }[],
+): string {
+  const othersBlock = othersRebuttals
+    .map((o) => `■ ${o.role.title}の反論:\n${o.rebuttal}`)
+    .join('\n\n')
+
+  return [
+    `あなた（${self.title}）は最初に、次の初期意見を述べました。`,
+    '---',
+    selfOpening,
+    '---',
+    '',
+    'これに対し、他の役員は次のように反論しています。',
+    '---',
+    othersBlock,
+    '---',
+    '',
+    'これらの反論を踏まえ、改めてあなたの考えを述べてください。次を必ず守ること:',
+    '・冒頭で、最終的なあなたの立場（賛成 / 反対 / 条件付き賛成 のいずれか）を明示する。最初の立場を維持するのか、修正するのかが分かるようにする。',
+    '・相手の反論のどこに同意し、どこには引き続き反対するのかを、具体的に述べる。',
+    '・反論によって考えが変わったなら、その理由を率直に述べる。変わらないなら、その根拠を補強する。',
+    '200字程度で、要点を絞って簡潔に。冗長な前置きや一般論の繰り返しは避けること。',
   ].join('\n')
 }
 
@@ -269,7 +302,22 @@ export async function runDiscussion({
   })
   members.forEach((m, i) => emit(makeStatement(m, 'rebuttal', rebuttalTexts[i])))
 
-  // --- フェーズ3: CEOが全体を構造化して総括（429時は自動リトライ） ---
+  // --- フェーズ3: 各自が「自分への反論・他者の反論」を読み、立場を維持/修正して再反論（少数ずつ・429回避） ---
+  emitProgress('counter', memberIds)
+  const counterTexts = await mapInBatches(members, MAX_CONCURRENT, (m, i) => {
+    const othersRebuttals = members
+      .map((other, j) => ({ role: other, rebuttal: rebuttalTexts[j] }))
+      .filter((_, j) => j !== i)
+    return generate(apiKey, m.systemPrompt, ctx + counterPrompt(m, openings[i].content, othersRebuttals), {
+      onRetry: () => emitProgress('counter', memberIds, true),
+    })
+  })
+  // 再反論でも、冒頭に最終的な立場を明示させているので立場を推定して持たせる（立場分布の集計に使う）。
+  members.forEach((m, i) =>
+    emit(makeStatement(m, 'counter', counterTexts[i], { stance: detectStance(counterTexts[i]) })),
+  )
+
+  // --- フェーズ4: CEOが全体を構造化して総括（429時は自動リトライ） ---
   emitProgress('summary', [CHAIR.id])
   const summary = await generateJson<CeoSummary>(
     apiKey,
