@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { CHAIR, getRole, SELECTABLE_ROLES, type Role } from './agents/roles'
 import {
   generateClarifyingQuestions,
@@ -8,8 +8,17 @@ import {
   type ClarifyAnswer,
   type Phase,
   type Progress,
+  type Stance,
   type Statement,
 } from './engine/discuss'
+import {
+  clearHistory,
+  formatDiscussionText,
+  loadHistory,
+  removeHistory,
+  saveDiscussion,
+  type HistoryEntry,
+} from './engine/history'
 
 // 課題入力欄に挿入する例文。
 const EXAMPLE_ISSUES = [
@@ -93,8 +102,18 @@ function App() {
   const [answers, setAnswers] = useState<string[]>([])
   const [prepLoading, setPrepLoading] = useState(false)
   const [prepError, setPrepError] = useState<string | null>(null)
+  // 議論履歴（localStorage）。読み込みは初回のみ。
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory())
+  // 履歴から開いた読み取り専用ビューか。
+  const [isHistoryView, setIsHistoryView] = useState(false)
+  // コピーのフィードバック / フォールバック。
+  const [copied, setCopied] = useState(false)
+  const [copyFallback, setCopyFallback] = useState<string | null>(null)
   // APIキー欄へフォーカス/スクロールするためのref。
   const apiKeyRef = useRef<HTMLInputElement>(null)
+
+  // 議論が総括まで到達して完了しているか。
+  const completed = statements.some((s) => s.phase === 'summary')
 
   function focusApiKey() {
     apiKeyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -175,6 +194,9 @@ function App() {
 
   async function handleStart() {
     setView('discussion')
+    setIsHistoryView(false)
+    setCopied(false)
+    setCopyFallback(null)
     setError(null)
     setStatements([])
     setProgress(null)
@@ -185,7 +207,7 @@ function App() {
       answer: answers[i] ?? '',
     }))
     try {
-      await runDiscussion({
+      const result = await runDiscussion({
         apiKey,
         issue,
         roleIds: selectedIds,
@@ -193,12 +215,58 @@ function App() {
         onStatement: (s) => setStatements((prev) => [...prev, s]),
         onProgress: (p) => setProgress(p),
       })
+      // 完走した議論だけ履歴に保存（APIキーは含めない）。
+      setHistory(saveDiscussion({ issue, roleIds: selectedIds, statements: result }))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
       setLoading(false)
       setProgress(null)
     }
+  }
+
+  // 議論をコピー。失敗時は選択可能なテキストでフォールバック。
+  async function handleCopy() {
+    const text = formatDiscussionText(issue, statements)
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setCopyFallback(text)
+    }
+  }
+
+  // 入力画面へ戻る（新しい会議）。
+  function handleBackToInput() {
+    setView('input')
+    setIsHistoryView(false)
+    setCopyFallback(null)
+  }
+
+  // 履歴を読み取り専用で再表示（再生成しない＝APIを使わない）。
+  function openHistory(entry: HistoryEntry) {
+    setIssue(entry.issue)
+    setSelectedIds(entry.roleIds)
+    setStatements(entry.statements)
+    setQuestions([])
+    setAnswers([])
+    setError(null)
+    setLoading(false)
+    setProgress(null)
+    setIsHistoryView(true)
+    setCopied(false)
+    setCopyFallback(null)
+    setView('discussion')
+  }
+
+  function handleDeleteHistory(id: string) {
+    setHistory(removeHistory(id))
+  }
+
+  function handleClearHistory() {
+    clearHistory()
+    setHistory([])
   }
 
   // フェーズごとに発言をまとめる（時系列のまま、議事見出しで区切るため）。
@@ -448,11 +516,52 @@ function App() {
                 会議を開始する
               </button>
             </section>
+
+            {/* これまでの議論（履歴が1件以上あるときだけ） */}
+            {history.length > 0 && (
+              <section className="panel history-panel">
+                <div className="field">
+                  <div className="field-label-row">
+                    <label>これまでの議論</label>
+                    <button type="button" className="link-btn" onClick={handleClearHistory}>
+                      履歴をすべて削除
+                    </button>
+                  </div>
+                  <ul className="history-list">
+                    {history.map((h) => (
+                      <li className="history-item" key={h.id}>
+                        <button
+                          type="button"
+                          className="history-open"
+                          onClick={() => openHistory(h)}
+                        >
+                          <span className="history-issue">{h.issue}</span>
+                          <span className="history-date">{formatHistoryDate(h.createdAt)}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="info-btn history-del"
+                          onClick={() => handleDeleteHistory(h.id)}
+                          aria-label="この履歴を削除"
+                          title="削除"
+                        >
+                          ×
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
+
+            <footer className="site-footer">
+              複数の役員AIに多角的な視点で議論させ、意思決定の論点とリスクを整理するツールです。
+            </footer>
           </>
         ) : (
           <>
-            <button type="button" className="back-btn" onClick={() => setView('input')}>
-              ← 議題に戻る
+            <button type="button" className="back-btn" onClick={handleBackToInput}>
+              ← 入力に戻る
             </button>
 
             <header className="mini-header">
@@ -468,24 +577,74 @@ function App() {
               <div className="error" role="alert">
                 <p className="error-msg">⚠ {error}</p>
                 <p className="error-sub">
-                  議論が途中で中断されました。「議題に戻る」からやり直してください。
+                  議論が途中で中断されました。「入力に戻る」からやり直してください。
                 </p>
               </div>
             )}
 
             <div className="minutes">
               {byPhase.map((group) => (
-                <section key={group.phase} className="phase-group">
-                  <AgendaHeading phase={group.phase} />
-                  {group.items.map((s) => (
-                    <StatementCard key={s.id} statement={s} />
-                  ))}
-                </section>
+                <Fragment key={group.phase}>
+                  {/* 総括の直前に、各役員の最終的な立場の分布を差し込む */}
+                  {group.phase === 'summary' && stanceDist.total > 0 && (
+                    <StanceDistribution dist={stanceDist} />
+                  )}
+                  <section className="phase-group">
+                    <AgendaHeading phase={group.phase} />
+                    {group.items.map((s) => (
+                      <StatementCard key={s.id} statement={s} />
+                    ))}
+                  </section>
+                </Fragment>
               ))}
             </div>
 
             {loading && progress && (
               <WaitingRoom progress={progress} roleIds={selectedIds} />
+            )}
+
+            {/* 議論完了後の導線 */}
+            {completed && !loading && (
+              <div className="result-actions">
+                <button
+                  type="button"
+                  className={`sub-btn${copied ? ' is-copied' : ''}`}
+                  onClick={handleCopy}
+                >
+                  {copied ? '✓ コピーしました' : '議論をコピー'}
+                </button>
+                {!isHistoryView && (
+                  <button type="button" className="sub-btn" onClick={handleStart}>
+                    同じ議題でもう一度
+                  </button>
+                )}
+                <button type="button" className="sub-btn" onClick={handleBackToInput}>
+                  議題を変えて新しい会議
+                </button>
+              </div>
+            )}
+
+            {/* コピー失敗時のフォールバック（選択してコピー） */}
+            {copyFallback !== null && (
+              <div className="copy-fallback">
+                <p className="hint">
+                  自動コピーできませんでした。下のテキストを選択してコピーしてください。
+                </p>
+                <textarea
+                  className="copy-fallback-text"
+                  readOnly
+                  rows={8}
+                  value={copyFallback}
+                  onFocus={(e) => e.currentTarget.select()}
+                />
+                <button
+                  type="button"
+                  className="link-btn"
+                  onClick={() => setCopyFallback(null)}
+                >
+                  閉じる
+                </button>
+              </div>
             )}
           </>
         )}

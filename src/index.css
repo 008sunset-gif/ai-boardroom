@@ -562,6 +562,129 @@ textarea:focus {
   cursor: not-allowed;
 }
 
+/* ---- これまでの議論（履歴リスト） ---- */
+.history-panel {
+  margin-top: 16px;
+}
+
+.history-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.history-item:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.history-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 2px;
+  font: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.history-open:hover .history-issue {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.history-issue {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-date {
+  flex: none;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.history-del {
+  font-family: inherit;
+  font-style: normal;
+  font-size: 1rem;
+}
+
+/* ---- フッター（アプリの目的を一文で） ---- */
+.site-footer {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* ---- 議論完了後の導線・コピー（副ボタン） ---- */
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.sub-btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: var(--text);
+  background-color: var(--panel);
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, transform 0.05s;
+}
+
+.sub-btn:hover {
+  border-color: var(--muted);
+}
+
+.sub-btn:active {
+  transform: translateY(1px);
+}
+
+.sub-btn.is-copied {
+  color: var(--agree-text);
+  border-color: var(--agree-text);
+}
+
+/* ---- コピー失敗時のフォールバック ---- */
+.copy-fallback {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.copy-fallback-text {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
 /* ---- 注記 ---- */
 .hint {
   margin: 0;
