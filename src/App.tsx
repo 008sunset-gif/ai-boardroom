@@ -209,6 +209,23 @@ function App() {
     })).filter((g) => g.items.length > 0)
   }, [statements])
 
+  // 各役員の最終的な立場を集計する（再反論フェーズの立場を優先、なければ初期意見の立場）。
+  // 賛成・条件付き賛成・反対の内訳を、総括の手前で一目で分かるように見せる。
+  const stanceDist = useMemo(() => {
+    const counts: Record<Stance, number> = { agree: 0, conditional: 0, disagree: 0 }
+    let total = 0
+    for (const roleId of selectedIds) {
+      const counter = statements.find((s) => s.roleId === roleId && s.phase === 'counter')
+      const opening = statements.find((s) => s.roleId === roleId && s.phase === 'opening')
+      const stance = counter?.stance ?? opening?.stance
+      if (stance) {
+        counts[stance] += 1
+        total += 1
+      }
+    }
+    return { counts, total }
+  }, [statements, selectedIds])
+
   return (
     <div className="app">
       <div className={`container${view === 'discussion' ? ' container--narrow' : ''}`}>
@@ -523,6 +540,49 @@ function WaitingRoom({ progress, roleIds }: { progress: Progress; roleIds: strin
       {progress.retrying && (
         <p className="waiting-retry">混雑のため、自動的に再試行しています…</p>
       )}
+    </div>
+  )
+}
+
+// 各役員の最終的な立場の分布。賛成・条件付き賛成・反対を色帯と内訳で控えめに示す。
+const STANCE_ORDER: Stance[] = ['agree', 'conditional', 'disagree']
+
+function StanceDistribution({
+  dist,
+}: {
+  dist: { counts: Record<Stance, number>; total: number }
+}) {
+  const { counts, total } = dist
+  const label = STANCE_ORDER.filter((s) => counts[s] > 0)
+    .map((s) => `${STANCE_LABELS[s]}${counts[s]}名`)
+    .join('・')
+
+  return (
+    <div className="stance-dist">
+      <span className="stance-dist-label">役員の最終的な立場</span>
+      <div className="stance-bar" role="img" aria-label={label}>
+        {STANCE_ORDER.map((s) =>
+          counts[s] > 0 ? (
+            <span
+              key={s}
+              className={`stance-bar-seg stance-fill--${s}`}
+              style={{ flexGrow: counts[s] }}
+            />
+          ) : null,
+        )}
+      </div>
+      <div className="stance-legend">
+        {STANCE_ORDER.map((s) => (
+          <span className="stance-legend-item" key={s} data-zero={counts[s] === 0}>
+            <span className={`stance-dot stance-fill--${s}`} />
+            {STANCE_LABELS[s]}
+            <span className="stance-legend-count">{counts[s]}</span>
+          </span>
+        ))}
+      </div>
+      <span className="stance-dist-note">
+        {total}名中、{label || '集計なし'}
+      </span>
     </div>
   )
 }

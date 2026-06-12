@@ -989,6 +989,91 @@ textarea:focus {
   background-color: var(--muted);
 }
 
+/* ---- 立場の分布（総括の手前・控えめな議事録トーン） ---- */
+.stance-dist {
+  margin: 38px 0 0;
+  padding: 16px 18px;
+  background-color: var(--panel);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.stance-dist-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+/* 立場の比率を示す色帯（賛成→条件付き→反対の順） */
+.stance-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: var(--border);
+}
+
+.stance-bar-seg {
+  min-width: 6px;
+}
+
+.stance-bar-seg + .stance-bar-seg {
+  border-left: 2px solid var(--panel);
+}
+
+/* 立場の塗り色（バッジ文字色を面として使う。3立場で一貫） */
+.stance-fill--agree {
+  background-color: var(--agree-text);
+}
+
+.stance-fill--conditional {
+  background-color: var(--cond-text);
+}
+
+.stance-fill--disagree {
+  background-color: var(--disagree-text);
+}
+
+.stance-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.stance-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.stance-legend-item[data-zero='true'] {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.stance-dot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.stance-legend-count {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stance-dist-note {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 /* ---- 役員紹介モーダル ---- */
 .modal-overlay {
   position: fixed;
