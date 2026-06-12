@@ -1,18 +1,64 @@
-/* テーマはCSS変数で管理する。ライト/ダークは prefers-color-scheme で切替。 */
+/* =========================================================================
+   AI経営会議 — デザインシステム
+   トーン: 静かで知的な会議室。配色・余白は仕様の指定値に忠実。
+   役職アクセント色は「点」（ドット・輪郭・文字色）でのみ使い、ベタ塗りしない。
+   ライト/ダーク両対応・レスポンシブ。可読性最優先。
+   ========================================================================= */
+
 :root {
-  /* Light theme (default) */
-  --color-bg: #ffffff;
-  --color-surface: #f5f5f7;
-  --color-text: #1a1a1a;
-  --color-text-muted: #5c5c66;
-  --color-border: #e2e2e8;
-  --color-accent: #2563eb;
+  /* 背景・面 */
+  --bg: #f4f2ec; /* ページ背景（白でなく、ごくわずかに暖色の紙トーン） */
+  --panel: #ffffff; /* カード/パネル */
+  --panel-summary: #fbfaf7; /* 議長総括の面 */
+  --border: #e0dacc; /* パネル・入力の枠 */
+  --card-border: #e6e1d6; /* 発言カードの枠 */
+
+  /* テキスト */
+  --text: #2b2926;
+  --muted: #8a867c;
+
+  /* 開始ボタン（濃い墨色） */
+  --ink: #2b2926;
+  --ink-text: #ffffff;
+
+  /* 単一アクセント（フォーカスリング等） */
+  --accent: #4f46e5;
+  --accent-soft: rgba(79, 70, 229, 0.08);
+
+  /* 選択状態（淡い紫＋紫枠） */
+  --select-bg: #f3f0fc;
+  --select-border: #7c3aed;
+
+  /* 自動選択ボタン（淡い紫） */
+  --auto-bg: #efecfd;
+  --auto-text: #4f46a8;
+  --auto-border: #d8d1f5;
+
+  /* 未選択インジケータのグレー丸（輪郭のみ） */
+  --status-empty: #c9c4b8;
+
+  /* 議長バッジ（選択の紫とは別系統＝金色系） */
+  --chair-bg: #f6eccb;
+  --chair-text: #876613;
+  --chair-border: #e0c97f;
+
+  /* 立場バッジ */
+  --agree-bg: #e7f2ea;
+  --agree-text: #2f7d4f;
+  --disagree-bg: #fbeae7;
+  --disagree-text: #b3382f;
+  --cond-bg: #f6eedb;
+  --cond-text: #876613;
+
+  --radius: 11px; /* カード・入力欄 */
+  --radius-card: 13px; /* 発言カード */
+  --shadow: 0 1px 2px rgba(50, 42, 28, 0.04), 0 6px 18px rgba(50, 42, 28, 0.05);
+  --shadow-lg: 0 12px 42px rgba(25, 20, 10, 0.18);
 
   color-scheme: light dark;
-
-  font-family: system-ui, -apple-system, 'Segoe UI', 'Hiragino Kaku Gothic ProN',
-    'Noto Sans JP', sans-serif;
-  line-height: 1.5;
+  /* 英数字には Inter、日本語には Noto Sans JP が当たる順序 */
+  font-family: 'Inter', 'Noto Sans JP', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.75;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,12 +66,43 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #16161a;
-    --color-surface: #1f1f25;
-    --color-text: #f5f5f7;
-    --color-text-muted: #a0a0ab;
-    --color-border: #2e2e36;
-    --color-accent: #60a5fa;
+    --bg: #1a1a18;
+    --panel: #242422;
+    --panel-summary: #2b2a27;
+    --border: #38362f;
+    --card-border: #403d35;
+
+    --text: #e8e4d8;
+    --muted: #97928a;
+
+    --ink: #e8e4d8; /* 暗色背景では墨色が沈むため反転 */
+    --ink-text: #1a1a18;
+
+    --accent: #8b93f8;
+    --accent-soft: rgba(139, 147, 248, 0.14);
+
+    --select-bg: #2a2540;
+    --select-border: #8b7ff0;
+
+    --auto-bg: #2a2742;
+    --auto-text: #bcb6f2;
+    --auto-border: #423d68;
+
+    --status-empty: #56544a;
+
+    --chair-bg: #2e2818;
+    --chair-text: #d9bb6b;
+    --chair-border: #514516;
+
+    --agree-bg: #1e2c22;
+    --agree-text: #86cfa0;
+    --disagree-bg: #2e1b18;
+    --disagree-text: #f0a79f;
+    --cond-bg: #2c2718;
+    --cond-text: #dcc787;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 12px 42px rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -41,13 +118,979 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 15px;
 }
 
+/* ---- レイアウト ---- */
 .app {
   min-height: 100%;
   display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 760px;
+  padding: 52px 20px 96px;
+}
+
+/* 議論画面は読み物なので1カラム・狭め中央寄せ */
+.container--narrow {
+  max-width: 720px;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 28px 16px 64px;
+  }
+}
+
+/* ====================== 入力画面 ====================== */
+
+/* ---- ヘッダー（中央寄せ） ---- */
+.masthead {
+  text-align: center;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 26px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+.brand svg {
+  width: 24px;
+  height: 24px;
+}
+
+.masthead h1 {
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.lede {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.lede:first-of-type {
+  margin-top: 10px;
+}
+
+/* ---- 入力パネル ---- */
+.panel {
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.field > label,
+.field-label-row > label,
+.apikey-area > label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.07em;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px 13px;
+  font: inherit;
+  line-height: 1.7;
+  color: var(--text);
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ---- 例文チップ ---- */
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.example-chip {
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 13px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.example-chip:hover {
+  color: var(--text);
+  border-color: var(--select-border);
+  background-color: var(--select-bg);
+}
+
+/* ---- 役員ラベル行 + 自動選択ボタン ---- */
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.auto-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--auto-text);
+  background-color: var(--auto-bg);
+  border: 1px solid var(--auto-border);
+  border-radius: 999px;
+  padding: 6px 13px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.auto-btn:hover:not(:disabled) {
+  border-color: var(--auto-text);
+}
+
+.auto-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---- 議長カード（独立・横長） ---- */
+.chair-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 13px 14px;
+}
+
+.chair-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chair-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chair-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--chair-text);
+  background-color: var(--chair-bg);
+  border: 1px solid var(--chair-border);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.chair-note {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+/* ---- 役員グリッド（2カラム内では2列、スマホで1列） ---- */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+@media (max-width: 520px) {
+  .role-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 11px 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.role-card:not(.is-on):hover {
+  border-color: var(--muted);
+}
+
+/* 選択中: 背景は白のまま。枠とリングはその役職のアクセント色（borderColor/boxShadowをinlineで指定） */
+
+.role-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.role-dot {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 選択中: 役職色でしっかり塗った丸＋白チェック（inlineでbackground指定） */
+.role-dot--filled {
+  box-shadow: none;
+}
+
+/* 未選択: 薄いグレーの輪郭だけの丸 */
+.role-dot--empty {
+  background-color: transparent;
+  border: 2px solid var(--status-empty);
+}
+
+.role-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.role-card-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* 役職名は省略せず、必要なら2行に折り返す（見切れ防止） */
+.role-card-title {
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+/* 詳細(i)ボタン */
+.info-btn {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background-color: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.info-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---- 確認事項（事前ヒアリング） ---- */
+.clarify-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.clarify-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 0;
+  border-top: 1px solid var(--border);
+}
+
+.clarify-item:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.clarify-q {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.clarify-a {
+  min-height: 40px;
+}
+
+/* 副ボタン（議論の準備をする）: 開始ボタンの墨色とは区別した控えめなアウトライン */
+.prep-btn {
+  align-self: flex-start;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text);
+  background-color: var(--panel);
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.prep-btn:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+.prep-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 質問生成中の表示 */
+.prep-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background-color: var(--auto-text);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* テキストリンク風ボタン（質問を作り直す） */
+.link-btn {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--auto-text);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.link-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- 注記 ---- */
+.hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.hint--error {
+  color: var(--disagree-text);
+}
+
+/* ---- APIキー欄 ---- */
+.apikey-area {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* ---- 開始ボタン（全幅） ---- */
+.start-btn {
+  width: 100%;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink-text);
+  background-color: var(--ink);
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.05s;
+}
+
+.start-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.start-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.start-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ====================== 議論画面 ====================== */
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 14px;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  color: var(--text);
+}
+
+/* ---- ミニヘッダー ---- */
+.mini-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.mini-icon {
+  display: inline-flex;
+  color: var(--text);
+}
+
+.mini-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex: none;
+}
+
+.mini-issue {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attendee-badge {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 11px;
+}
+
+/* ---- 状態表示 ---- */
+.error {
+  margin: 18px 0 0;
+  padding: 13px 15px;
+  color: var(--disagree-text);
+  background-color: var(--disagree-bg);
+  border: 1px solid var(--disagree-text);
+  border-radius: var(--radius);
+}
+
+.error-msg {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.error-sub {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+/* ---- 議論生成中の待機表示（会議が進行している雰囲気） ---- */
+.waiting {
+  margin-top: 8px;
+}
+
+.waiting-room {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 4px 2px 2px;
+}
+
+.waiting-att {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 56px;
+}
+
+/* 待機中の役員は控えめに沈める */
+.waiting-att .avatar {
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.waiting-att.is-active .avatar {
+  opacity: 1;
+}
+
+.waiting-wait {
+  font-size: 0.68rem;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* 思考中ドット（点が順に光る） */
+.thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 1em;
+}
+
+.thinking i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--muted);
+  animation: think 1.3s ease-in-out infinite;
+}
+
+.thinking i:nth-child(2) {
+  animation-delay: 0.22s;
+}
+
+.thinking i:nth-child(3) {
+  animation-delay: 0.44s;
+}
+
+@keyframes think {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.waiting-text {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.waiting-retry {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--cond-text);
+}
+
+/* ---- 議事見出し ---- */
+.minutes {
+  margin-top: 8px;
+}
+
+.agenda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 34px 0 16px;
+}
+
+.agenda-no {
+  flex: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+.agenda-no--chair {
+  color: #7c3aed;
+}
+
+@media (prefers-color-scheme: dark) {
+  .agenda-no--chair {
+    color: #a78bfa;
+  }
+}
+
+.agenda-title {
+  flex: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.agenda-rule {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+
+/* ---- 発言（会話レイアウト） ---- */
+.statement {
+  margin-bottom: 11px;
+  animation: fade 0.25s ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.statement-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+/* 役員アバター: 役職色は輪郭1.5pxと文字色のみ。背景は白で塗りつぶさない。 */
+.avatar {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--role, var(--border));
+  color: var(--role, var(--text));
+  background-color: var(--panel);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.statement-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 発言カード */
+.statement-row > .statement-main {
+  background-color: var(--panel);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+}
+
+.statement-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.role-name {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.role-title {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.statement-body {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text);
+}
+
+/* 立場バッジ（初期意見のみ） */
+.stance {
+  margin-left: auto;
+  flex: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.stance--agree {
+  background-color: var(--agree-bg);
+  color: var(--agree-text);
+}
+
+.stance--disagree {
+  background-color: var(--disagree-bg);
+  color: var(--disagree-text);
+}
+
+.stance--conditional {
+  background-color: var(--cond-bg);
+  color: var(--cond-text);
+}
+
+/* ---- 議長総括（結論パート: 一段格上げ） ---- */
+.statement--summary .statement-main {
+  background-color: var(--panel-summary);
+  border-color: var(--border);
+  border-top: 3px solid var(--role);
+  box-shadow: var(--shadow);
+  padding: 18px 18px 20px;
+}
+
+.decision-badge {
+  margin-left: auto;
+  flex: none;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--auto-text);
+  background-color: var(--auto-bg);
+  border: 1px solid var(--auto-border);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.summary-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.summary-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summary-list li {
+  position: relative;
+  padding-left: 14px;
+  margin-bottom: 5px;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+/* 「判断に足りない情報」の各項目頭の点アイコン */
+.summary-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--muted);
+}
+
+/* ---- 役員紹介モーダル ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgba(20, 16, 8, 0.45);
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.avatar--lg {
+  width: 52px;
+  height: 52px;
+  font-size: 0.78rem;
+}
+
+.modal-title {
+  margin: 0 0 2px;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.modal-stance {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.profile {
+  margin: 0;
+}
+
+.profile-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.profile-row dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.profile-row dd {
+  margin: 0;
+  line-height: 1.65;
+}
+
+/* ---- アクセシビリティ: モーション低減 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .statement,
+  .thinking i {
+    animation: none;
+  }
+  /* アニメーション無効時も「準備中」が分かるよう、控えめに点灯させておく */
+  .thinking i {
+    opacity: 0.55;
+  }
 }
