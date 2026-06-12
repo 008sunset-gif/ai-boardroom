@@ -45,10 +45,13 @@
   /* 立場バッジ */
   --agree-bg: #e7f2ea;
   --agree-text: #2f7d4f;
+  --agree-border: #b5d8c1;
   --disagree-bg: #fbeae7;
   --disagree-text: #b3382f;
+  --disagree-border: #e7bcb5;
   --cond-bg: #f6eedb;
   --cond-text: #876613;
+  --cond-border: #ddc98f;
 
   --radius: 11px; /* カード・入力欄 */
   --radius-card: 13px; /* 発言カード */
@@ -96,10 +99,13 @@
 
     --agree-bg: #1e2c22;
     --agree-text: #86cfa0;
+    --agree-border: #355043;
     --disagree-bg: #2e1b18;
     --disagree-text: #f0a79f;
+    --disagree-border: #573732;
     --cond-bg: #2c2718;
     --cond-text: #dcc787;
+    --cond-border: #524828;
 
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
     --shadow-lg: 0 12px 42px rgba(0, 0, 0, 0.55);
@@ -154,25 +160,30 @@ body {
   text-align: center;
   padding-bottom: 22px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 26px;
+  margin-bottom: 28px;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--text);
 }
 
+/* アイコンは控えめなアクセントの角丸バッジに収め、ブランドマークとして整える */
 .brand svg {
-  width: 24px;
-  height: 24px;
+  width: 38px;
+  height: 38px;
+  padding: 8px;
+  color: var(--accent);
+  background-color: var(--accent-soft);
+  border-radius: 11px;
 }
 
 .masthead h1 {
-  font-size: 27px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.045em;
   margin: 0;
 }
 
@@ -180,11 +191,11 @@ body {
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 0.9rem;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .lede:first-of-type {
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
 /* ---- 入力パネル ---- */
@@ -244,14 +255,20 @@ textarea:focus {
 .examples {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+}
+
+.examples-lead {
+  font-size: 0.78rem;
+  color: var(--muted);
 }
 
 .example-chip {
   font: inherit;
   font-size: 0.8rem;
-  color: var(--muted);
-  background-color: var(--panel);
+  color: var(--text);
+  background-color: var(--accent-soft);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 5px 13px;
@@ -263,6 +280,10 @@ textarea:focus {
   color: var(--text);
   border-color: var(--select-border);
   background-color: var(--select-bg);
+}
+
+.example-chip:active {
+  transform: translateY(1px);
 }
 
 /* ---- 役員ラベル行 + 自動選択ボタン ---- */
@@ -286,11 +307,15 @@ textarea:focus {
   border-radius: 999px;
   padding: 6px 13px;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: border-color 0.15s, opacity 0.15s, transform 0.05s;
 }
 
 .auto-btn:hover:not(:disabled) {
   border-color: var(--auto-text);
+}
+
+.auto-btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .auto-btn:disabled {
@@ -492,11 +517,15 @@ textarea:focus {
   border-radius: var(--radius);
   padding: 9px 16px;
   cursor: pointer;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s, transform 0.05s;
 }
 
 .prep-btn:hover:not(:disabled) {
   border-color: var(--muted);
+}
+
+.prep-btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .prep-btn:disabled {
@@ -910,31 +939,46 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 34px 0 16px;
+  margin: 38px 0 18px;
+}
+
+/* 最初の議事見出しは、ミニヘッダー直下なので上余白を詰める */
+.phase-group:first-child .agenda,
+.waiting > .agenda {
+  margin-top: 22px;
 }
 
 .agenda-no {
   flex: none;
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   color: var(--muted);
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 11px;
 }
 
+/* 総括（最終議事）は議長カラーで満たし、会議の締めくくりだと一目で分かるようにする */
 .agenda-no--chair {
-  color: #7c3aed;
+  color: #fff;
+  background-color: #7c3aed;
+  border-color: #7c3aed;
 }
 
 @media (prefers-color-scheme: dark) {
   .agenda-no--chair {
-    color: #a78bfa;
+    color: #1a1a18;
+    background-color: #a78bfa;
+    border-color: #a78bfa;
   }
 }
 
 .agenda-title {
   flex: none;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: var(--text);
 }
 
@@ -946,7 +990,7 @@ textarea:focus {
 
 /* ---- 発言（会話レイアウト） ---- */
 .statement {
-  margin-bottom: 11px;
+  margin-bottom: 14px;
   animation: fade 0.25s ease;
 }
 
@@ -965,21 +1009,22 @@ textarea:focus {
   align-items: flex-start;
 }
 
-/* 役員アバター: 役職色は輪郭1.5pxと文字色のみ。背景は白で塗りつぶさない。 */
+/* 役員アバター: 役職色は輪郭と文字色＋ごく淡いハロー。背景は白のまま塗りつぶさない。 */
 .avatar {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   border: 1.5px solid var(--role, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--role, transparent) 8%, transparent);
   color: var(--role, var(--text));
   background-color: var(--panel);
-  font-size: 0.66rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 
 .statement-main {
@@ -1020,38 +1065,55 @@ textarea:focus {
   color: var(--text);
 }
 
-/* 立場バッジ（初期意見のみ） */
+/* 立場バッジ（初期意見のみ）。一目で立場が分かるよう、淡い面＋同系の細枠で軽く強調。 */
 .stance {
   margin-left: auto;
   flex: none;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
   border-radius: 999px;
-  padding: 2px 9px;
+  padding: 3px 11px;
 }
 
 .stance--agree {
   background-color: var(--agree-bg);
   color: var(--agree-text);
+  border-color: var(--agree-border);
 }
 
 .stance--disagree {
   background-color: var(--disagree-bg);
   color: var(--disagree-text);
+  border-color: var(--disagree-border);
 }
 
 .stance--conditional {
   background-color: var(--cond-bg);
   color: var(--cond-text);
+  border-color: var(--cond-border);
 }
 
-/* ---- 議長総括（結論パート: 一段格上げ） ---- */
+/* ---- 議長総括（結論パート: 会議の締めくくりとして最も目立たせる） ---- */
+.statement--summary {
+  margin-top: 4px;
+  margin-bottom: 20px;
+}
+
 .statement--summary .statement-main {
   background-color: var(--panel-summary);
-  border-color: var(--border);
-  border-top: 3px solid var(--role);
-  box-shadow: var(--shadow);
-  padding: 18px 18px 20px;
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--role);
+  border-radius: var(--radius-card);
+  box-shadow: 0 4px 14px rgba(50, 42, 28, 0.07), 0 14px 40px rgba(50, 42, 28, 0.08);
+  padding: 20px 20px 22px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .statement--summary .statement-main {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.45);
+  }
 }
 
 .decision-badge {
@@ -1069,13 +1131,13 @@ textarea:focus {
 .summary {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 17px;
 }
 
 .summary-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .summary-label {
@@ -1083,6 +1145,18 @@ textarea:focus {
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--muted);
+}
+
+/* 見出しの下に細い罫を引き、4項目が結論として読みやすく区切られるようにする */
+.summary-label::after {
+  content: '';
+  display: block;
+  width: 22px;
+  height: 2px;
+  margin-top: 6px;
+  border-radius: 1px;
+  background-color: var(--role, var(--border));
+  opacity: 0.5;
 }
 
 .summary-text {

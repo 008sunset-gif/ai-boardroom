@@ -305,7 +305,6 @@ function App() {
                 <h1>AI経営会議</h1>
               </div>
               <p className="lede">経営課題を投げかけると、役員AIが議論します。</p>
-              <p className="lede">決めるのは、あなたです。</p>
             </header>
 
             <section className="panel">
@@ -320,6 +319,7 @@ function App() {
                   placeholder="議論したい経営課題を入力、または下の例から選択"
                 />
                 <div className="examples">
+                  <span className="examples-lead">例えば</span>
                   {EXAMPLE_ISSUES.map((ex) => (
                     <button
                       key={ex}
@@ -340,7 +340,9 @@ function App() {
                 {questions.length === 0 ? (
                   <>
                     <p className="hint">
-                      議題に応じてAIが確認質問を作成します。答えるほど、御社に即した議論になります。
+                      {issue.trim() === ''
+                        ? '先に議題を入力すると、AIがその議題に応じた確認質問を作成します。答えるほど、御社に即した議論になります。'
+                        : '議題に応じてAIが確認質問を作成します。答えるほど、御社に即した議論になります。'}
                     </p>
                     <button
                       type="button"
