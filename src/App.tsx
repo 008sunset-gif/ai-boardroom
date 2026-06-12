@@ -356,7 +356,7 @@ function App() {
               {/* 出席する役員（選択式） */}
               <div className="field">
                 <div className="field-label-row">
-                  <label>出席する役員（2名以上を選択）</label>
+                  <label>出席する役員（3〜4名がおすすめ）</label>
                   <button
                     type="button"
                     className="auto-btn"
@@ -416,8 +416,14 @@ function App() {
                 </div>
 
                 <p className="hint">
-                  観点の異なる役員を選ぶと議論が深まります。迷ったら「議題から自動で選ぶ」へ。
+                  観点の異なる役員を3〜4名選ぶと議論が深まります。迷ったら「議題から自動で選ぶ」へ。
+                  人数が多いほど議論は長くなり、無料APIの利用制限に達しやすくなります。
                 </p>
+                {selectedIds.length >= 5 && (
+                  <p className="hint hint--warn">
+                    {selectedIds.length}名を選択中です。人数が多いと無料APIの制限に達しやすく、生成に時間がかかります。3〜4名がおすすめです。
+                  </p>
+                )}
                 {autoError && <p className="hint hint--error">{autoError}</p>}
               </div>
 

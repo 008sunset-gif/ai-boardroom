@@ -80,7 +80,9 @@ export async function generateJson<T>(
   } catch (err) {
     // パース失敗は内容の問題。生データはconsoleにのみ残す。
     console.error('[Gemini] JSON parse failed. raw text:', text, err)
-    throw new Error('議論の生成中にエラーが発生しました。もう一度お試しください。')
+    throw new Error('議論の生成中にエラーが発生しました。もう一度お試しください。', {
+      cause: err,
+    })
   }
 }
 

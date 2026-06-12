@@ -573,6 +573,11 @@ textarea:focus {
   color: var(--disagree-text);
 }
 
+/* 注意喚起（人数が多いときなど）。禁止ではなく気づきを促す控えめなトーン。 */
+.hint--warn {
+  color: var(--cond-text);
+}
+
 /* ---- APIキー欄 ---- */
 .apikey-area {
   display: flex;
